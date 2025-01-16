@@ -1,5 +1,5 @@
 import React from 'react';
-import HackerInterface from './components/HackerInterface.jsx';
+import HackerInterface from './components/HackerInterface';
 
 function App() {
   return (

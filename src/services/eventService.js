@@ -17,20 +17,20 @@ const sanitizeInput = (text) => {
   
   // Cities configuration
   export const cities = {
-    poznan: { name: "Poznań", feed: "https://local.issa.org.pl/spotkania/category/poznan/feed" },
-    szczecin: { name: "Szczecin", feed: "https://local.issa.org.pl/spotkania/category/szczecin/feed" },
-    rzeszow: { name: "Rzeszów", feed: "https://local.issa.org.pl/spotkania/category/rzeszow/feed" },
-    lublin: { name: "Lublin", feed: "https://local.issa.org.pl/spotkania/category/lublin/feed" },
-    krakow: { name: "Kraków", feed: "https://local.issa.org.pl/spotkania/category/krakow/feed" },
-    lodz: { name: "Łódź", feed: "https://local.issa.org.pl/spotkania/category/lodz/feed" },
-    katowice: { name: "Katowice", feed: "https://local.issa.org.pl/spotkania/category/katowice/feed" },
-    trojmiasto: { name: "Trójmiasto", feed: "https://local.issa.org.pl/spotkania/category/trojmiasto/feed" },
-    warszawa: { name: "Warszawa", feed: "https://local.issa.org.pl/spotkania/category/warszawa/feed" },
-    wroclaw: { name: "Wrocław", feed: "https://local.issa.org.pl/spotkania/category/wroclaw/feed" },
-    akademia: { name: "Akademia", feed: "https://local.issa.org.pl/spotkania/category/akademia/feed" },
+    poznan: { name: "Poznań", feed: "/spotkania/category/poznan/feed" },
+    szczecin: { name: "Szczecin", feed: "/spotkania/category/szczecin/feed" },
+    rzeszow: { name: "Rzeszów", feed: "/spotkania/category/rzeszow/feed" },
+    lublin: { name: "Lublin", feed: "/spotkania/category/lublin/feed" },
+    krakow: { name: "Kraków", feed: "/spotkania/category/krakow/feed" },
+    lodz: { name: "Łódź", feed: "/spotkania/category/lodz/feed" },
+    katowice: { name: "Katowice", feed: "/spotkania/category/katowice/feed" },
+    trojmiasto: { name: "Trójmiasto", feed: "/spotkania/category/trojmiasto/feed" },
+    warszawa: { name: "Warszawa", feed: "/spotkania/category/warszawa/feed" },
+    wroclaw: { name: "Wrocław", feed: "/spotkania/category/wroclaw/feed" },
+    akademia: { name: "Akademia", feed: "/spotkania/category/akademia/feed" },
     "nl-akademia-najlepsze-prelekcje-z-local": { 
       name: "Najlepsze Prelekcje", 
-      feed: "https://local.issa.org.pl/spotkania/category/nl-akademia-najlepsze-prelekcje-z-local/feed" 
+      feed: "/spotkania/category/nl-akademia-najlepsze-prelekcje-z-local/feed" 
     }
   };
   
@@ -173,25 +173,29 @@ const sanitizeInput = (text) => {
   // Main function to load events
   export const loadEvents = async (feedUrl) => {
     try {
-      if (!isValidUrl(feedUrl)) {
-        throw new Error('Invalid feed URL');
-      }
+      console.log('Attempting to fetch URL:', feedUrl); // Dodatkowe logowanie
   
       const response = await fetch(feedUrl, {
         headers: {
           'Accept': 'application/xml',
           'Content-Type': 'application/xml',
         },
+        mode: 'cors',
         referrerPolicy: 'no-referrer',
         cache: 'no-cache'
       });
   
+      console.log('Fetch response status:', response.status); // Log statusu odpowiedzi
+  
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response text:', errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
   
       const text = await response.text();
-      
+      console.log('Received XML text (first 500 chars):', text.slice(0, 500)); // Log pierwszych 500 znaków
+  
       if (!text.includes('<?xml')) {
         throw new Error('Invalid XML format');
       }
@@ -201,12 +205,14 @@ const sanitizeInput = (text) => {
       
       const parserError = xml.querySelector('parsererror');
       if (parserError) {
+        console.error('XML parsing error:', parserError.textContent);
         throw new Error('XML parsing error');
       }
   
       const items = xml.querySelectorAll("item");
   
       if (items.length === 0) {
+        console.warn('No items found in the feed');
         return { currentEvent: null, nextEvent: null };
       }
   
@@ -219,7 +225,7 @@ const sanitizeInput = (text) => {
   
       return { currentEvent, nextEvent };
     } catch (error) {
-      console.error("Error fetching RSS feed:", error);
+      console.error("Detailed error fetching RSS feed:", error);
       throw new Error(`Failed to load events: ${error.message}`);
     }
   };
