@@ -2,8 +2,6 @@
 
 Nowoczesna aplikacja PWA do przeglądania wydarzeń ISSA Polska w stylu hakerskim, stworzona przy użyciu React i Tailwind CSS.
 
-![ISSA Events Terminal Preview](./preview.png)
-
 ## 🚀 Funkcjonalności
 
 - 🌍 Przeglądanie wydarzeń ISSA dla różnych miast w Polsce
@@ -116,3 +114,79 @@ Aplikacja pobiera dane z następujących źródeł RSS:
 - [ ] Rozszerzenie widoku agendy
 - [ ] Integracja z kalendarzem
 - [ ] Dodanie filtrowania wydarzeń
+
+
+Instrukcja uruchomienia projektu lokalnie
+Wymagania wstępne
+
+Zainstaluj Node.js:
+
+Wejdź na stronę https://nodejs.org/
+Pobierz i zainstaluj wersję LTS (18 lub nowszą)
+Sprawdź instalację w terminalu:
+bashCopynode --version
+npm --version
+
+
+
+Zainstaluj Git:
+
+Wejdź na stronę https://git-scm.com/
+Pobierz i zainstaluj Git
+Sprawdź instalację:
+bashCopygit --version
+
+
+
+
+Krok po kroku
+
+Otwórz terminal (PowerShell lub Command Prompt w Windows)
+Przejdź do katalogu, gdzie chcesz umieścić projekt:
+bashCopycd C:\Users\TwojaNazwaUzytkownika\Desktop
+
+Sklonuj repozytorium:
+bashCopygit clone [URL_repozytorium]
+cd issa-events
+
+Zainstaluj zależności:
+bashCopynpm install
+
+Uruchom projekt:
+bashCopynpm run dev
+
+Otwórz przeglądarkę i przejdź pod adres:
+Copyhttp://localhost:5173
+
+
+Rozwiązywanie problemów
+
+Jeśli występują błędy z modułami:
+bashCopynpm clean-install
+
+Jeśli projekt nie uruchamia się:
+bashCopy# Usuń node_modules
+Remove-Item -Recurse -Force node_modules
+# Usuń package-lock.json
+Remove-Item package-lock.json
+# Zainstaluj ponownie
+npm install
+
+Jeśli nie działają style:
+bashCopy# Zainstaluj ponownie Tailwind
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+
+Sprawdź, czy wszystkie pliki są na miejscu:
+Copyissa-events/
+├── src/
+│   ├── components/
+│   │   └── HackerInterface.jsx
+│   ├── styles/
+│   │   └── globals.css
+│   ├── App.jsx
+│   └── main.jsx
+├── index.html
+├── package.json
+├── vite.config.js
+└── tailwind.config.js
