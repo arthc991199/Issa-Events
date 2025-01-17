@@ -10,7 +10,8 @@ import {
   Users, 
   ExternalLink, 
   Wifi, 
-  WifiOff 
+  WifiOff,
+  AlertTriangle
 } from 'lucide-react';
 import { cities, loadEvents } from '../services/eventService';
 import { registerServiceWorker, subscribeToPush, checkAndUpdateBadge } from '../services/notificationService';
@@ -30,8 +31,19 @@ const OfflineBanner = ({ teamColor }) => (
   </div>
 );
 
+// Komponent Błędu
+const ErrorMessage = ({ message, teamColor }) => (
+  <div className={`flex items-center justify-center p-4 border border-${teamColor}-500 
+                   rounded-lg text-${teamColor}-400 space-x-2`}>
+    <AlertTriangle className="w-5 h-5" />
+    <span className="font-mono">{message}</span>
+  </div>
+);
+
 // Komponent Karty Wydarzenia
 const EventCard = ({ event, teamColor, isNext = false }) => {
+  if (!event) return null;
+
   return (
     <div className="event-card p-4 rounded-lg mt-4">
       <div className="flex justify-between items-start">
@@ -39,40 +51,42 @@ const EventCard = ({ event, teamColor, isNext = false }) => {
       </div>
       <div className={`space-y-2 text-${teamColor}-400 ${!isNext && 'animate-matrix-text'}`}>
         <p className="flex items-center">
-          <Terminal className="w-4 h-4 mr-2" />
-          {event.title}
+          <Terminal className="w-4 h-4 mr-2 flex-shrink-0" />
+          <span className="break-words">{event.title}</span>
         </p>
         <p className="flex items-center">
-          <Calendar className="w-4 h-4 mr-2" />
+          <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
           {event.date}
         </p>
         <p className="flex items-center">
-          <MapPin className="w-4 h-4 mr-2" />
-          {event.location}
+          <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+          <span className="break-words">{event.location}</span>
         </p>
         {!isNext && (
           <p className="flex items-center">
-            <Clock className="w-4 h-4 mr-2" />
+            <Clock className="w-4 h-4 mr-2 flex-shrink-0" />
             {event.timeMessage}
           </p>
         )}
         {event.agenda && !isNext && (
-          <p className={`mt-2 text-sm border-t border-${teamColor}-500/30 pt-2`}>
+          <p className={`mt-2 text-sm border-t border-${teamColor}-500/30 pt-2 break-words`}>
             {event.agenda}
           </p>
         )}
       </div>
-      <a
-        href={event.link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`city-button inline-block mt-4 px-4 py-2 border 
-                   border-${teamColor}-500 rounded hover:bg-${teamColor}-500 
-                   hover:text-black transition-colors`}
-      >
-        <ExternalLink className="w-4 h-4 inline-block mr-2" />
-        {isNext ? 'SZCZEGÓŁY' : 'REJESTRACJA'}
-      </a>
+      {event.link && (
+        <a
+          href={event.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`city-button inline-block mt-4 px-4 py-2 border 
+                     border-${teamColor}-500 rounded hover:bg-${teamColor}-500 
+                     hover:text-black transition-colors`}
+        >
+          <ExternalLink className="w-4 h-4 inline-block mr-2" />
+          {isNext ? 'SZCZEGÓŁY' : 'REJESTRACJA'}
+        </a>
+      )}
     </div>
   );
 };
@@ -97,8 +111,10 @@ const HackerInterface = () => {
   const [eventData, setEventData] = useState(null);
   const [nextEventData, setNextEventData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [currentTeam, setCurrentTeam] = useState(localStorage.getItem('team') || 'blue');
   const [currentMenu, setCurrentMenu] = useState('events');
+  const [fetchTrigger, setFetchTrigger] = useState(0);
   const { isOffline, offlineData, saveToCache } = useOfflineMode();
 
   // Inicjalizacja PWA
@@ -120,41 +136,64 @@ const HackerInterface = () => {
 
   // Ładowanie wydarzeń
   useEffect(() => {
+    let isMounted = true;
     const fetchEvents = async () => {
       if (selectedCity && cities[selectedCity]) {
         setLoading(true);
+        setError(null);
         try {
           const data = await loadEvents(cities[selectedCity].feed);
-          setEventData(data.currentEvent);
-          setNextEventData(data.nextEvent);
           
-          if (data.currentEvent) {
-            await saveToCache(data);
-          }
+          if (!isMounted) return;
 
-          if (data.currentEvent?.timeMessage) {
-            const daysMatch = data.currentEvent.timeMessage.match(/\d+/);
-            if (daysMatch) {
-              await checkAndUpdateBadge(parseInt(daysMatch[0]));
+          if (data && (data.currentEvent || data.nextEvent)) {
+            setEventData(data.currentEvent);
+            setNextEventData(data.nextEvent);
+            
+            if (data.currentEvent) {
+              await saveToCache(data);
             }
+
+            if (data.currentEvent?.timeMessage) {
+              const daysMatch = data.currentEvent.timeMessage.match(/\d+/);
+              if (daysMatch) {
+                await checkAndUpdateBadge(parseInt(daysMatch[0]));
+              }
+            }
+          } else {
+            setEventData(null);
+            setNextEventData(null);
+            setError('Brak dostępnych wydarzeń');
           }
         } catch (error) {
           console.error('Błąd ładowania wydarzeń:', error);
+          setError(error.message || 'Wystąpił błąd podczas ładowania wydarzeń');
+          
           if (isOffline && offlineData) {
             setEventData(offlineData.currentEvent);
             setNextEventData(offlineData.nextEvent);
           }
         } finally {
-          setLoading(false);
+          if (isMounted) {
+            setLoading(false);
+          }
         }
       }
     };
 
     fetchEvents();
-  }, [selectedCity, isOffline, offlineData]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedCity, isOffline, offlineData, fetchTrigger]);
 
   const handleMenuSelect = (menuKey) => {
     setCurrentMenu(menuKey);
+  };
+
+  const refreshEvents = () => {
+    setFetchTrigger(prev => prev + 1);
   };
 
   const teamColor = currentTeam === 'red' ? 'red' : 'blue';
@@ -225,6 +264,7 @@ const HackerInterface = () => {
                     onClick={() => {
                       setSelectedCity(null);
                       localStorage.removeItem('selectedCity');
+                      setError(null);
                     }}
                     className={`city-button flex items-center px-3 py-2 border 
                              border-${teamColor}-500 rounded hover:bg-${teamColor}-500 
@@ -241,9 +281,11 @@ const HackerInterface = () => {
               <div className="space-y-4 font-mono">
                 {loading ? (
                   <LoadingMessage />
-                ) : eventData ? (
+                ) : error ? (
+                  <ErrorMessage message={error} teamColor={teamColor} />
+                ) : eventData || nextEventData ? (
                   <>
-                    <EventCard event={eventData} teamColor={teamColor} />
+                    {eventData && <EventCard event={eventData} teamColor={teamColor} />}
                     {nextEventData && (
                       <EventCard 
                         event={nextEventData} 
@@ -256,6 +298,21 @@ const HackerInterface = () => {
                   <p className="text-center py-8">Nie znaleziono nadchodzących wydarzeń.</p>
                 )}
               </div>
+
+              {/* Przycisk odświeżania */}
+              {!isOffline && !loading && (
+                <div className="mt-6 flex justify-center">
+                  <button
+                    onClick={refreshEvents}
+                    className={`flex items-center px-4 py-2 border border-${teamColor}-500 
+                             rounded hover:bg-${teamColor}-500 hover:text-black 
+                             transition-colors font-mono text-sm`}
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    ODŚWIEŻ DANE
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

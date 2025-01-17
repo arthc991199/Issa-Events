@@ -203,10 +203,23 @@ const sanitizeInput = (text) => {
     }
   };
   
+  // Cache dla zapobiegania częstym wywołaniom API
+  const feedCache = new Map();
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minut
+  
   // Main function to load events
   export const loadEvents = async (feedUrl) => {
     try {
+      // Sprawdź cache
+      const cachedData = feedCache.get(feedUrl);
+      if (cachedData && (Date.now() - cachedData.timestamp < CACHE_DURATION)) {
+        return cachedData.data;
+      }
+  
       console.log('Attempting to fetch URL:', feedUrl);
+  
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 sekund timeout
   
       const response = await fetch(feedUrl, {
         headers: {
@@ -214,9 +227,12 @@ const sanitizeInput = (text) => {
           'Content-Type': 'application/xml',
         },
         mode: 'cors',
+        signal: controller.signal,
         referrerPolicy: 'no-referrer',
-        cache: 'no-cache'
+        cache: 'no-store' // Wyłączamy cache przeglądarki
       });
+  
+      clearTimeout(timeoutId);
   
       console.log('Fetch response status:', response.status);
   
@@ -229,7 +245,7 @@ const sanitizeInput = (text) => {
       const text = await response.text();
       console.log('Received XML text (first 500 chars):', text.slice(0, 500));
   
-      if (!text.includes('<?xml')) {
+      if (!text || !text.includes('<?xml')) {
         throw new Error('Invalid XML format');
       }
   
@@ -252,12 +268,26 @@ const sanitizeInput = (text) => {
       const currentEvent = parseEventData(items[0]);
       const nextEvent = items.length > 1 ? parseEventData(items[1]) : null;
   
-      if (!currentEvent) {
-        throw new Error('Failed to parse current event');
+      if (!currentEvent && !nextEvent) {
+        console.warn('No valid events found after parsing');
+        return { currentEvent: null, nextEvent: null };
       }
   
-      return { currentEvent, nextEvent };
+      const result = { currentEvent, nextEvent };
+  
+      // Zapisz do cache
+      feedCache.set(feedUrl, {
+        data: result,
+        timestamp: Date.now()
+      });
+  
+      return result;
     } catch (error) {
+      if (error.name === 'AbortError') {
+        console.error("Request timeout");
+        throw new Error('Przekroczono czas oczekiwania na odpowiedź');
+      }
+      
       console.error("Detailed error fetching RSS feed:", error);
       throw new Error(`Failed to load events: ${error.message}`);
     }
