@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISSA Events - Offline</title>
+    <link rel="icon" type="image/png" href="/app2/icons/favicon.png" />
+    <style>
+        body {
+            font-family: monospace;
+            background-color: #000;
+            color: #00ff00;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            border: 1px solid #00ff00;
+            padding: 20px;
+            border-radius: 5px;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .reload-button {
+            background: none;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: monospace;
+            margin-top: 20px;
+        }
+
+        .reload-button:hover {
+            background: #00ff00;
+            color: #000;
+        }
+
+        .terminal-text {
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .cursor {
+            animation: blink 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ISSA Events Terminal - Offline Mode</h1>
+        <div class="terminal-text">
+            <p>> Checking network connection...<span class="cursor">_</span></p>
+            <p>> Status: OFFLINE</p>
+            <p>> Error: Unable to fetch latest events</p>
+            <p>> Loading cached data...</p>
+            <p>> Please check your internet connection</p>
+        </div>
+        <button class="reload-button" onclick="window.location.reload()">
+            Reconnect
+        </button>
+    </div>
+</body>
+</html>
