@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import HackerNavbar from '../components/layout/HackerNavbar';
 import { 
-  Terminal, Clock, MapPin, Calendar, ChevronRight, 
-  RefreshCw, Users, ExternalLink, Wifi, WifiOff 
+  Terminal, 
+  Clock, 
+  MapPin, 
+  Calendar, 
+  ChevronRight, 
+  RefreshCw, 
+  Users, 
+  ExternalLink, 
+  Wifi, 
+  WifiOff 
 } from 'lucide-react';
 import { cities, loadEvents } from '../services/eventService';
 import { registerServiceWorker, subscribeToPush, checkAndUpdateBadge } from '../services/notificationService';
@@ -16,7 +24,7 @@ import '../styles/matrix-background.css';
 const OfflineBanner = ({ teamColor }) => (
   <div className={`fixed top-0 left-0 right-0 bg-${teamColor}-900/50 
                    text-${teamColor}-300 py-2 px-4 text-center flex items-center 
-                   justify-center font-mono text-sm`}>
+                   justify-center font-mono text-sm z-50`}>
     <WifiOff className="w-4 h-4 mr-2" />
     Tryb Offline - Wyświetlanie Zapisanych Danych
   </div>
@@ -145,21 +153,8 @@ const HackerInterface = () => {
     fetchEvents();
   }, [selectedCity, isOffline, offlineData]);
 
-  // Obsługa zmiany menu
   const handleMenuSelect = (menuKey) => {
     setCurrentMenu(menuKey);
-    switch(menuKey) {
-      case 'events':
-        break;
-      case 'community':
-        break;
-      case 'schedule':
-        break;
-      case 'settings':
-        break;
-      case 'notifications':
-        break;
-    }
   };
 
   const teamColor = currentTeam === 'red' ? 'red' : 'blue';
@@ -167,7 +162,7 @@ const HackerInterface = () => {
 
   return (
     <div className={`min-h-screen matrix-bg text-${teamColor}-500 p-4 ${currentTeam}-team relative`}>
-      {/* Nowe tło Matrix */}
+      {/* Matrix Background */}
       <MatrixBackground teamColor={teamColor} />
 
       {/* Navbar */}
@@ -215,12 +210,12 @@ const HackerInterface = () => {
           ) : (
             <div className="terminal-container">
               {/* Nagłówek miasta */}
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <h2 className="font-mono text-xl flex items-center">
                   <Calendar className="mr-2" />
                   {cities[selectedCity].name}_WYDARZENIA
                 </h2>
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
                   {isOffline ? (
                     <WifiOff className={`w-5 h-5 text-${teamColor}-500`} />
                   ) : (
@@ -232,8 +227,9 @@ const HackerInterface = () => {
                       localStorage.removeItem('selectedCity');
                     }}
                     className={`city-button flex items-center px-3 py-2 border 
-                              border-${teamColor}-500 rounded hover:bg-${teamColor}-500 
-                              hover:text-black transition-colors font-mono text-sm`}
+                             border-${teamColor}-500 rounded hover:bg-${teamColor}-500 
+                             hover:text-black transition-colors font-mono text-sm
+                             w-full sm:w-auto justify-center sm:justify-start`}
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     ZMIEŃ LOKALIZACJĘ
@@ -267,12 +263,12 @@ const HackerInterface = () => {
         {/* Stopka */}
         <footer className="mt-8 text-center font-mono text-sm">
           <p className="mb-2">LINKI SYSTEMOWE:</p>
-          <div className="flex justify-center space-x-4">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 sm:space-x-4">
             <a
               href="https://issa.org.pl/"
               target="_blank"
               rel="noopener noreferrer"
-              className={`hover:text-${teamColor}-400 transition-colors flex items-center`}
+              className={`hover:text-${teamColor}-400 transition-colors flex items-center justify-center`}
             >
               <Terminal className="w-4 h-4 mr-1" />
               STRONA GŁÓWNA
@@ -281,7 +277,7 @@ const HackerInterface = () => {
               href="https://issa.org.pl/czlonkostwo/jak-zostac-czlonkiem-stowarzyszenia"
               target="_blank"
               rel="noopener noreferrer"
-              className={`hover:text-${teamColor}-400 transition-colors flex items-center`}
+              className={`hover:text-${teamColor}-400 transition-colors flex items-center justify-center`}
             >
               <Users className="w-4 h-4 mr-1" />
               DOŁĄCZ DO SIECI
