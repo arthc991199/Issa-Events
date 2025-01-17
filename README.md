@@ -35,6 +35,11 @@ git clone https://github.com/twoja-nazwa/issa-events.git
 cd issa-events
 ```
 
+Jeśli nie masz zainstalowanego npm: 
+```bash
+sudo apt install nodejs npm
+```
+
 2. Zainstaluj zależności:
 ```bash
 npm install
