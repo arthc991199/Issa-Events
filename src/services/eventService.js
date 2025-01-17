@@ -9,7 +9,7 @@ const sanitizeInput = (text) => {
   const isValidUrl = (url) => {
     try {
       const parsedUrl = new URL(url);
-      return parsedUrl.hostname === 'local.issa.org.pl' && parsedUrl.protocol === 'https:';
+      return parsedUrl.hostname === 'local.issa.org.pl';
     } catch {
       return false;
     }
@@ -17,20 +17,53 @@ const sanitizeInput = (text) => {
   
   // Cities configuration
   export const cities = {
-    poznan: { name: "Poznań", feed: "/spotkania/category/poznan/feed" },
-    szczecin: { name: "Szczecin", feed: "/spotkania/category/szczecin/feed" },
-    rzeszow: { name: "Rzeszów", feed: "/spotkania/category/rzeszow/feed" },
-    lublin: { name: "Lublin", feed: "/spotkania/category/lublin/feed" },
-    krakow: { name: "Kraków", feed: "/spotkania/category/krakow/feed" },
-    lodz: { name: "Łódź", feed: "/spotkania/category/lodz/feed" },
-    katowice: { name: "Katowice", feed: "/spotkania/category/katowice/feed" },
-    trojmiasto: { name: "Trójmiasto", feed: "/spotkania/category/trojmiasto/feed" },
-    warszawa: { name: "Warszawa", feed: "/spotkania/category/warszawa/feed" },
-    wroclaw: { name: "Wrocław", feed: "/spotkania/category/wroclaw/feed" },
-    akademia: { name: "Akademia", feed: "/spotkania/category/akademia/feed" },
+    poznan: { 
+      name: "Poznań", 
+      feed: "https://local.issa.org.pl/spotkania/category/poznan/feed" 
+    },
+    szczecin: { 
+      name: "Szczecin", 
+      feed: "https://local.issa.org.pl/spotkania/category/szczecin/feed" 
+    },
+    rzeszow: { 
+      name: "Rzeszów", 
+      feed: "https://local.issa.org.pl/spotkania/category/rzeszow/feed" 
+    },
+    lublin: { 
+      name: "Lublin", 
+      feed: "https://local.issa.org.pl/spotkania/category/lublin/feed" 
+    },
+    krakow: { 
+      name: "Kraków", 
+      feed: "https://local.issa.org.pl/spotkania/category/krakow/feed" 
+    },
+    lodz: { 
+      name: "Łódź", 
+      feed: "https://local.issa.org.pl/spotkania/category/lodz/feed" 
+    },
+    katowice: { 
+      name: "Katowice", 
+      feed: "https://local.issa.org.pl/spotkania/category/katowice/feed" 
+    },
+    trojmiasto: { 
+      name: "Trójmiasto", 
+      feed: "https://local.issa.org.pl/spotkania/category/trojmiasto/feed" 
+    },
+    warszawa: { 
+      name: "Warszawa", 
+      feed: "https://local.issa.org.pl/spotkania/category/warszawa/feed" 
+    },
+    wroclaw: { 
+      name: "Wrocław", 
+      feed: "https://local.issa.org.pl/spotkania/category/wroclaw/feed" 
+    },
+    akademia: { 
+      name: "Akademia", 
+      feed: "https://local.issa.org.pl/spotkania/category/akademia/feed" 
+    },
     "nl-akademia-najlepsze-prelekcje-z-local": { 
       name: "Najlepsze Prelekcje", 
-      feed: "/spotkania/category/nl-akademia-najlepsze-prelekcje-z-local/feed" 
+      feed: "https://local.issa.org.pl/spotkania/category/nl-akademia-najlepsze-prelekcje-z-local/feed" 
     }
   };
   
@@ -173,7 +206,7 @@ const sanitizeInput = (text) => {
   // Main function to load events
   export const loadEvents = async (feedUrl) => {
     try {
-      console.log('Attempting to fetch URL:', feedUrl); // Dodatkowe logowanie
+      console.log('Attempting to fetch URL:', feedUrl);
   
       const response = await fetch(feedUrl, {
         headers: {
@@ -185,7 +218,7 @@ const sanitizeInput = (text) => {
         cache: 'no-cache'
       });
   
-      console.log('Fetch response status:', response.status); // Log statusu odpowiedzi
+      console.log('Fetch response status:', response.status);
   
       if (!response.ok) {
         const errorText = await response.text();
@@ -194,7 +227,7 @@ const sanitizeInput = (text) => {
       }
   
       const text = await response.text();
-      console.log('Received XML text (first 500 chars):', text.slice(0, 500)); // Log pierwszych 500 znaków
+      console.log('Received XML text (first 500 chars):', text.slice(0, 500));
   
       if (!text.includes('<?xml')) {
         throw new Error('Invalid XML format');

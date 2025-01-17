@@ -3,7 +3,7 @@ import { isIOS, isAndroid, supportsPush } from '../utils/platformUtils';
 export const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
-      const registration = await navigator.serviceWorker.register('/sw.js');
+      const registration = await navigator.serviceWorker.register('/app2/sw.js');
       console.log('Service Worker registered with scope:', registration.scope);
       return registration;
     } catch (error) {
@@ -43,7 +43,6 @@ export const subscribeToPush = async () => {
 
 export const checkAndUpdateBadge = async (daysToEvent) => {
   if (isIOS()) {
-    // iOS nie wspiera Badge API, możemy użyć alternatywnego rozwiązania
     return;
   }
 
@@ -62,7 +61,6 @@ export const checkAndUpdateBadge = async (daysToEvent) => {
 
 export const scheduleEventReminder = async (event) => {
   if (isIOS()) {
-    // Dla iOS dodajemy do kalendarza
     return addToCalendar(event);
   }
 
@@ -71,19 +69,17 @@ export const scheduleEventReminder = async (event) => {
     const now = new Date();
     const timeToEvent = eventDate.getTime() - now.getTime();
 
-    // Przypomnienie dzień przed
     setTimeout(() => {
       new Notification('Przypomnienie o wydarzeniu', {
         body: `Jutro odbędzie się: ${event.title}`,
-        icon: '/icons/icon-192x192.png'
+        icon: '/app2/icons/icon-192x192.png'
       });
     }, timeToEvent - 24 * 60 * 60 * 1000);
 
-    // Przypomnienie godzinę przed
     setTimeout(() => {
       new Notification('Wydarzenie za godzinę', {
         body: event.title,
-        icon: '/icons/icon-192x192.png'
+        icon: '/app2/icons/icon-192x192.png'
       });
     }, timeToEvent - 60 * 60 * 1000);
   }
@@ -95,11 +91,9 @@ const addToCalendar = (event) => {
   endDate.setHours(startDate.getHours() + 2);
 
   if (isIOS()) {
-    // Format dla iOS Calendar
     const calendarUrl = `webcal://calendar.google.com/calendar/ical/${encodeURIComponent(event.title)}/${startDate.toISOString()}/${endDate.toISOString()}`;
     window.location.href = calendarUrl;
   } else if (isAndroid()) {
-    // Format dla Android Calendar
     const calendarUrl = `content://com.android.calendar/time/${startDate.getTime()}`;
     window.location.href = calendarUrl;
   }
@@ -121,6 +115,5 @@ const urlBase64ToUint8Array = (base64String) => {
 };
 
 const sendSubscriptionToServer = async (subscription) => {
-  // Implementacja wysyłania subskrypcji na serwer
   console.log('Subscription to be sent to server:', subscription);
 };
