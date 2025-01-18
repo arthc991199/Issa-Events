@@ -68,6 +68,13 @@ const sanitizeInput = (text) => {
   };
   
   // Helper functions
+  const generateEventId = (title, date) => {
+    // Tworzymy unikalny identyfikator na podstawie tytułu i daty
+    const cleanTitle = title.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    const cleanDate = date.replace(/[^0-9]/g, '');
+    return `${cleanTitle}-${cleanDate}`;
+  };
+  
   const extractLocation = (div) => {
     try {
       const venueElement = div.querySelector(".tribe-block__venue__name");
@@ -97,8 +104,10 @@ const sanitizeInput = (text) => {
       let agenda = null;
       
       for (let i = 0; i < paragraphs.length; i++) {
-        if (paragraphs[i].textContent.includes("EVENTLINK") && i + 1 < paragraphs.length) {
-          agenda = sanitizeInput(paragraphs[i + 1].textContent.trim());
+        const text = paragraphs[i].textContent;
+        // Szukamy paragrafów zawierających godziny (np. "17:00", "17:20")
+        if (/\d{1,2}:\d{2}/.test(text)) {
+          agenda = sanitizeInput(text.trim());
           break;
         }
       }
@@ -156,13 +165,18 @@ const sanitizeInput = (text) => {
         throw new Error('Invalid date format');
       }
   
+      // Generowanie unikalnego ID
+      const id = generateEventId(title, eventDate.toISOString());
+  
       return {
+        id,
         title,
         date: eventDate.toLocaleDateString("pl-PL"),
         location: extractLocation(tempDiv),
         agenda: extractAgenda(tempDiv),
         timeMessage: calculateTimeMessage(eventDate),
-        link
+        link,
+        rawDate: eventDate // Dodajemy surową datę do sortowania
       };
     } catch (error) {
       console.error('Error parsing event data:', error);
@@ -229,22 +243,17 @@ const sanitizeInput = (text) => {
         mode: 'cors',
         signal: controller.signal,
         referrerPolicy: 'no-referrer',
-        cache: 'no-store' // Wyłączamy cache przeglądarki
+        cache: 'no-store'
       });
   
       clearTimeout(timeoutId);
   
-      console.log('Fetch response status:', response.status);
-  
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response text:', errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
   
       const text = await response.text();
-      console.log('Received XML text (first 500 chars):', text.slice(0, 500));
-  
+      
       if (!text || !text.includes('<?xml')) {
         throw new Error('Invalid XML format');
       }
@@ -254,24 +263,27 @@ const sanitizeInput = (text) => {
       
       const parserError = xml.querySelector('parsererror');
       if (parserError) {
-        console.error('XML parsing error:', parserError.textContent);
         throw new Error('XML parsing error');
       }
   
       const items = xml.querySelectorAll("item");
   
       if (items.length === 0) {
-        console.warn('No items found in the feed');
         return { currentEvent: null, nextEvent: null };
       }
+
+      const events = Array.from(items)
+        .map(item => parseEventData(item))
+        .filter(Boolean) 
+        .sort((a, b) => a.rawDate - b.rawDate); 
   
-      const currentEvent = parseEventData(items[0]);
-      const nextEvent = items.length > 1 ? parseEventData(items[1]) : null;
+      const now = new Date();
+      const upcomingEvents = events.filter(event => 
+        new Date(event.rawDate) >= now
+      );
   
-      if (!currentEvent && !nextEvent) {
-        console.warn('No valid events found after parsing');
-        return { currentEvent: null, nextEvent: null };
-      }
+      const currentEvent = upcomingEvents[0] || null;
+      const nextEvent = upcomingEvents[1] || null;
   
       const result = { currentEvent, nextEvent };
   
@@ -284,11 +296,9 @@ const sanitizeInput = (text) => {
       return result;
     } catch (error) {
       if (error.name === 'AbortError') {
-        console.error("Request timeout");
         throw new Error('Przekroczono czas oczekiwania na odpowiedź');
       }
       
-      console.error("Detailed error fetching RSS feed:", error);
       throw new Error(`Failed to load events: ${error.message}`);
     }
   };

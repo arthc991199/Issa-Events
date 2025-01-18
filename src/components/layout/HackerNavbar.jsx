@@ -1,14 +1,17 @@
+// src/components/layout/HackerNavbar.jsx
 import React, { useState } from 'react';
 import { 
   Terminal, 
   Users, 
   Calendar, 
-  Settings, 
-  Bell, 
   Menu,
   X,
-  Shield 
+  Shield,
+  MessageSquarePlus,
+  ExternalLink 
 } from 'lucide-react';
+import NotificationPanel from '../NotificationPanel';
+import FeedbackModal from './FeedbackModal';
 
 const NavbarItem = ({ icon: Icon, label, active, onClick, mobile = false }) => (
   <button 
@@ -34,6 +37,7 @@ const NavbarItem = ({ icon: Icon, label, active, onClick, mobile = false }) => (
 const HackerNavbar = ({ currentTeam, onTeamChange, onMenuSelect }) => {
   const [activeMenu, setActiveMenu] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   const menuItems = [
     { 
@@ -52,15 +56,21 @@ const HackerNavbar = ({ currentTeam, onTeamChange, onMenuSelect }) => {
       key: 'schedule' 
     },
     { 
-      icon: Settings, 
-      label: 'USTAWIENIA', 
-      key: 'settings' 
+      icon: MessageSquarePlus, 
+      label: 'ZAPROPONUJ ZMIANĘ', 
+      key: 'feedback',
+      onClick: () => setIsFeedbackModalOpen(true)
     }
   ];
 
   const handleMenuSelect = (key) => {
-    setActiveMenu(key);
-    onMenuSelect(key);
+    const menuItem = menuItems.find(item => item.key === key);
+    if (menuItem?.onClick) {
+      menuItem.onClick();
+    } else {
+      setActiveMenu(key);
+      onMenuSelect(key);
+    }
     setMobileMenuOpen(false);
   };
 
@@ -73,8 +83,7 @@ const HackerNavbar = ({ currentTeam, onTeamChange, onMenuSelect }) => {
         border-b border-${currentTeam === 'red' ? 'red' : 'blue'}-500/30
         justify-between items-center 
         px-4 py-2 font-mono
-      `}
-      >
+      `}>
         <div className="flex items-center">
           <Terminal className={`w-6 h-6 mr-2 text-${currentTeam === 'red' ? 'red' : 'blue'}-500`} />
           <h1 className="text-lg font-bold animate-text-flicker">
@@ -96,27 +105,18 @@ const HackerNavbar = ({ currentTeam, onTeamChange, onMenuSelect }) => {
                   : 'text-gray-400 hover:text-green-500'}
               `}
             >
-              {item.label}
+              <div className="flex items-center gap-2">
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </div>
             </button>
           ))}
         </div>
 
         {/* Prawa strona - Powiadomienia i Profil */}
         <div className="flex items-center space-x-4">
-          <button 
-            className="relative hover:text-green-500 transition-colors"
-            onClick={() => handleMenuSelect('notifications')}
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute -top-2 -right-2 
-              bg-red-500 text-white rounded-full 
-              w-4 h-4 flex items-center justify-center 
-              text-xs animate-pulse"
-            >
-              3
-            </span>
-          </button>
-
+          <NotificationPanel teamColor={currentTeam === 'red' ? 'red' : 'blue'} />
+          
           <button 
             onClick={() => onTeamChange(currentTeam === 'blue' ? 'red' : 'blue')}
             className={`
@@ -137,8 +137,7 @@ const HackerNavbar = ({ currentTeam, onTeamChange, onMenuSelect }) => {
         border-b border-${currentTeam === 'red' ? 'red' : 'blue'}-500/30
         flex justify-between items-center 
         px-4 py-3 font-mono
-      `}
-      >
+      `}>
         <div className="flex items-center">
           <Terminal className={`w-6 h-6 mr-2 text-${currentTeam === 'red' ? 'red' : 'blue'}-500`} />
           <h1 className="text-lg font-bold animate-text-flicker">
@@ -147,19 +146,7 @@ const HackerNavbar = ({ currentTeam, onTeamChange, onMenuSelect }) => {
         </div>
 
         <div className="flex items-center space-x-4">
-          <button 
-            className="relative hover:text-green-500 transition-colors"
-            onClick={() => handleMenuSelect('notifications')}
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute -top-2 -right-2 
-              bg-red-500 text-white rounded-full 
-              w-4 h-4 flex items-center justify-center 
-              text-xs animate-pulse"
-            >
-              3
-            </span>
-          </button>
+          <NotificationPanel teamColor={currentTeam === 'red' ? 'red' : 'blue'} />
 
           <button 
             onClick={() => onTeamChange(currentTeam === 'blue' ? 'red' : 'blue')}
@@ -193,22 +180,14 @@ const HackerNavbar = ({ currentTeam, onTeamChange, onMenuSelect }) => {
         >
           <div className="pt-4">
             {menuItems.map((item) => (
-              <button
+              <NavbarItem
                 key={item.key}
+                icon={item.icon}
+                label={item.label}
+                active={activeMenu === item.key}
                 onClick={() => handleMenuSelect(item.key)}
-                className={`
-                  w-full px-4 py-3 text-left text-sm font-mono
-                  border-b border-gray-700
-                  transition-colors duration-200
-                  ${activeMenu === item.key 
-                    ? 'text-green-500 bg-gray-800' 
-                    : 'text-gray-400 hover:text-green-500 hover:bg-gray-800'}
-                  flex items-center
-                `}
-              >
-                <item.icon className="w-5 h-5 mr-3" />
-                {item.label}
-              </button>
+                mobile={true}
+              />
             ))}
 
             {/* Dodatkowe opcje w menu mobilnym */}
@@ -235,6 +214,13 @@ const HackerNavbar = ({ currentTeam, onTeamChange, onMenuSelect }) => {
           </div>
         </div>
       )}
+
+      {/* Modal Ankiety */}
+      <FeedbackModal 
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        teamColor={currentTeam === 'red' ? 'red' : 'blue'}
+      />
     </>
   );
 };
