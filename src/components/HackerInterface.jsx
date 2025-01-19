@@ -323,18 +323,19 @@ const HackerInterface = () => {
           <div className="flex flex-col sm:flex-row justify-center gap-4 sm:space-x-4">
             <a
               href="https://issa.org.pl/"
+              className={`hover:text-${teamColor}-400 transition-colors flex items-center justify-center`}
               target="_blank"
               rel="noopener noreferrer"
-              className={`hover:text-${teamColor}-400 transition-colors flex items-center justify-center`}
             >
               <Terminal className="w-4 h-4 mr-1" />
               STRONA GŁÓWNA
             </a>
+            
             <a
               href="https://issa.org.pl/czlonkostwo/jak-zostac-czlonkiem-stowarzyszenia"
+              className={`hover:text-${teamColor}-400 transition-colors flex items-center justify-center`}
               target="_blank"
               rel="noopener noreferrer"
-              className={`hover:text-${teamColor}-400 transition-colors flex items-center justify-center`}
             >
               <Users className="w-4 h-4 mr-1" />
               DOŁĄCZ DO SIECI

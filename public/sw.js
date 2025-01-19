@@ -1,15 +1,15 @@
 const CACHE_NAME = 'issa-events-v1';
-const OFFLINE_URL = '/app2/offline.html';
+const OFFLINE_URL = '/dev/offline.html';
 
 // Resources to pre-cache
 const ASSETS_TO_CACHE = [
-  '/app2/',
-  '/app2/index.html',
-  '/app2/manifest.json',
-  '/app2/offline.html',
-  '/app2/icons/favicon.png',
-  '/app2/icons/icon-192x192.png',
-  '/app2/icons/icon-512x512.png'
+  '/dev/',
+  '/dev/index.html',
+  '/dev/manifest.json',
+  '/dev/offline.html',
+  '/dev/icons/icon-192x192.png',
+  '/dev/icons/icon-512x512.png',
+  '/dev/icons/icon-200x200.jpg'
 ];
 
 // Install Event
@@ -77,8 +77,8 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   const options = {
     body: event.data.text(),
-    icon: '/app2/icons/icon-192x192.png',
-    badge: '/app2/icons/notification-badge.png',
+    icon: '/dev/icons/icon-192x192.png',
+    badge: '/dev/icons/icon-192x192.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
@@ -87,28 +87,16 @@ self.addEventListener('push', (event) => {
     actions: [
       {
         action: 'explore',
-        title: 'Zobacz szczegóły',
-        icon: '/app2/icons/checkmark.png'
+        title: 'Zobacz szczegóły'
       },
       {
         action: 'close',
-        title: 'Zamknij',
-        icon: '/app2/icons/xmark.png'
-      },
+        title: 'Zamknij'
+      }
     ]
   };
 
   event.waitUntil(
     self.registration.showNotification('ISSA Events', options)
   );
-});
-
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-
-  if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow('/app2/')
-    );
-  }
 });
